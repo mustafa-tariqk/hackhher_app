@@ -9,6 +9,7 @@ from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.properties import VariableListProperty
 from plyer import notification
 from google_play_scraper import app
+import socket
 import datetime
 import os
 
@@ -115,13 +116,21 @@ class EpicApp(App):
     """This class builds the app as well as holds information regarding notifications.
     """
     def build(self):
-
-        outside = True
-        if outside:
+        def notify():
             notification.notify(
                 title="Wait!",
                 message="Make the pledge to stay safe!",
             )
+
+        home_ip = "2.2.2.2"  # temp
+
+        try:
+            hostname = socket.gethostname()
+            ip = socket.gethostbyname(hostname)
+            if ip != home_ip:
+                notify()
+        except ConnectionError:
+            notify()
 
         self.title = "COVID To Do List"
 
