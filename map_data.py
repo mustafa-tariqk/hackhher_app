@@ -41,11 +41,19 @@ def toronto_status_update():
     with open('covid.json', 'r') as f:
         data = json.load(f)
 
+    infection_data = {'neighbourhood': [],
+                      'count': []}
     message = "In the past month, there are:\n"
     for town in data:
         risk = len(data[town])
+
+        infection_data['neighbourhood'].append(town.lower())
+        infection_data['count'].append(risk)
+
         message += f"{risk} new cases in {town}\n"
 
+    with open('neighbourhood_data', 'w') as f:
+        f.write(json.dumps(infection_data, indent=4))
     print(message)
 
 
@@ -87,9 +95,6 @@ class ForecastData(MapData):
 
         self.data = json.loads(self.response.text)
         self.live_data = json.loads(self.live_response.text)
-        self.forecasted_busyness = self.live_data["analysis"]["venue_forecasted_busyness"]
-        self.peak_intensity = self.data["analysis"][0]["peak_hours"][0]["peak_intensity"]
-        self.busyness = self.live_data["analysis"]["venue_live_busyness"]
         toronto_status_update()
 
     def full_forecast(self):
@@ -103,22 +108,22 @@ class ForecastData(MapData):
         Using the available data from the API, the program will judge if it is safe to head there or not
         todo: Use local infection data to make further judgement
         """
+        forecasted_busyness = self.live_data["analysis"]["venue_forecasted_busyness"]
+        peak_intensity = self.data["analysis"][0]["peak_hours"][0]["peak_intensity"]
         if self.data["analysis"][0]["surge_hours"]["most_people_come"] == datetime.datetime.hour:
             return "It is not advisable to arrive at the establishment at this time\n" \
-                   f"It is known to peak at {self.peak_intensity} at this time"
+                   f"It is known to peak at {peak_intensity} at this time"
 
         else:
             if not self.live_data["analysis"]["venue_live_busyness_available"]:
                 return "Not much is known about this establishment currently.\n " \
-                       f"However, it is known to be having {self.forecasted_busyness} customers at this time of day"
+                       f"However, it is known to be having {forecasted_busyness} customers at this time of day"
+            busyness = self.live_data["analysis"]["venue_live_busyness"]
+            return f"The establishment is having {busyness} people. However, we still advise to go with mask on."
 
-            return f"The establishment is having {self.busyness} people. However, we still advise to go with mask on."
-
-    def risk_map(self):
+    def risk_value(self):
         with open('covid.json', 'r') as f:
             data = json.load(f)
-
-
 
 
 if __name__ == '__main__':
