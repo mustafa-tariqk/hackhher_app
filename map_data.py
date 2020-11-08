@@ -47,7 +47,7 @@ def toronto_status_update():
     for town in data:
         risk = len(data[town])
 
-        infection_data['neighbourhood'].append(town.lower())
+        infection_data['neighbourhood'].append(town.lower())  # Generate data file necessary to create the heatmap
         infection_data['count'].append(risk)
 
         message += f"{risk} new cases in {town}\n"
@@ -120,10 +120,6 @@ class ForecastData(MapData):
                        f"However, it is known to be having {forecasted_busyness} customers at this time of day"
             busyness = self.live_data["analysis"]["venue_live_busyness"]
             return f"The establishment is having {busyness} people. However, we still advise to go with mask on."
-
-    def risk_value(self):
-        with open('covid.json', 'r') as f:
-            data = json.load(f)
 
 
 if __name__ == '__main__':
